@@ -34,12 +34,12 @@ struct GetSize<TypeList<Args...>> {
             sizeof(typename TypeList<Args...>::_head) + GetSize<typename TypeList<Args...>::_tail>::size;
 };
 
-template <typename TL, int shift>
+template<typename TL, int shift>
 struct InnerReader {
     static void read(std::istream &is, void *ptr) {};
 };
 
-template <typename Head, typename ...Tail, int shift>
+template<typename Head, typename ...Tail, int shift>
 struct InnerReader<TypeList<Head, Tail...>, shift> {
     static void read(std::istream &is, void *ptr) {
         if (!std::is_same<Head, EmptyNode>::value) {
@@ -52,13 +52,13 @@ struct InnerReader<TypeList<Head, Tail...>, shift> {
     }
 };
 
-template <typename TL, std::size_t shift>
+template<typename TL, std::size_t shift>
 struct InnerPrint {
 
     static void print(std::ostream &os, const void *ptr) {}
 };
 
-template <typename Head, typename ...Tail, std::size_t shift>
+template<typename Head, typename ...Tail, std::size_t shift>
 struct InnerPrint<TypeList<Head, Tail...>, shift> {
 
     static void print(std::ostream &os, const void *ptr) {
@@ -70,31 +70,39 @@ struct InnerPrint<TypeList<Head, Tail...>, shift> {
     }
 };
 
-template <typename TL>
+template<typename TL>
 class Reader {
 public:
-    static void* nextLine(std::istream& is) {
+    Reader(std::string fileName = "../input.txt") {
+        is.open(fileName, std::ifstream::in);
+    }
+
+    void *nextLine() {
         static const int typelistSize = GetSize<TL>::size;
-        void* ptr = malloc(typelistSize);
+        void *ptr = malloc(typelistSize);
         InnerReader<TL, 0>::read(is, ptr);
         return ptr;
     }
-    static void print(std::ostream &os, const void *ptr) {
+
+    void print(std::ostream &os, const void *ptr) {
         InnerPrint<TL, 0>::print(os, ptr);
     };
+private:
+    std::ifstream is;
 };
-
 
 
 int main() {
 
     using GivenTypeList = TypeList<int, int, double, char>;
 
-    std::ifstream is("../input.txt");
+    Reader<GivenTypeList> reader;
 
-    void *ptr = Reader<GivenTypeList>::nextLine(is);
-
-    Reader<GivenTypeList>::print(std::cout, ptr);
+    for (int i = 0; i < 5; i++) {
+        void *ptr = reader.nextLine();
+        reader.print(std::cout, ptr);
+        std::cout << std::endl;
+    }
 
     return 0;
 };
