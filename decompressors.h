@@ -1,20 +1,17 @@
 #ifndef PATTERNS_DECOMPRESSORS_H
 #define PATTERNS_DECOMPRESSORS_H
 
-class NoDecompressor{};
-
-template<typename T>
-class DecompressorForCompilyator {
+class NoDecompressor {
 public:
-    static T decompress(T &t) {
-        return t;
+    static NoDecompressor decompress(void* v) {
+        return NoDecompressor();
     }
 };
 
-class DecompressDoubleToFloat{
+class DecompressDoubleToFloat {
 public:
-    static float decompress(double data){
-        return static_cast<float>(data);
+    static float decompress(double *data) {
+        return static_cast<float>(*data);
     }
 
 private:

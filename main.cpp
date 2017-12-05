@@ -47,16 +47,17 @@ struct InnerReader<TypeList<Head1, Tail1...>,TypeList<Head2, Tail2...>,TypeList<
         if (!std::is_same<Head1, EmptyNode>::value) {
             Head1 compressedObj;
             is >> compressedObj;
+            Head1* compressedObjPtr = &compressedObj;
             if (std::is_same<Head2, NoneType>::value){
-                using Head3_ = DecompressorForCompilyator<Head3>;
-                auto obj = Head3_::decompress(compressedObj);
+                auto obj = Head3::decompress(compressedObjPtr);
                 typeof(obj) *objPtr = static_cast<typeof(obj) *>(ptr + shift);
                 *objPtr = obj;
                 InnerReader<TypeList<Tail1...>,TypeList<Tail2...>,TypeList<Tail3...>, shift + sizeof(obj)>::read(is, ptr);
             } else{
-                Head2 *castObj = reinterpret_cast<Head2*>(&compressedObj);
+                Head2 *castObj = reinterpret_cast<Head2*>(compressedObjPtr);
                 auto obj = (*castObj).decompress();
                 typeof(obj) *objPtr = static_cast<typeof(obj) *>(ptr + shift);
+                *objPtr = obj;
                 InnerReader<TypeList<Tail1...>,TypeList<Tail2...>,TypeList<Tail3...>, shift + sizeof(obj)>::read(is, ptr);
             }
 
@@ -116,16 +117,16 @@ private:
 
 
 int main() {
+    using TypeList1 = TypeList<double, MyChar, double, MyChar>;
+    using TypeList2 = TypeList<NoneType, MyIntFromChar, NoneType, MyIntFromChar>;
+    using TypeList3 = TypeList<DecompressDoubleToFloat, NoDecompressor, DecompressDoubleToFloat, NoDecompressor>;
 
-    //using TypeList1 = TypeList<int, int, double, char>;
-    using TypeList1 = TypeList<double, char, double>;
-    using TypeList2 = TypeList<NoneType, int, float>;
-    using TypeList3 = TypeList<DecompressDoubleToFloat, NoDecompressor, NoDecompressor>;
-    using PrintTypeList = TypeList<float, int, float>;
+    //need for check
+    using PrintTypeList = TypeList<float, int, float, int>;
 
     Reader<TypeList1, TypeList2, TypeList3> reader;
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < 2; i++) {
         void *ptr = reader.nextLine();
         Printer<PrintTypeList>::print(std::cout, ptr);
         std::cout << std::endl;
